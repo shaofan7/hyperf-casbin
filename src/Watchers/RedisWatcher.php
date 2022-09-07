@@ -1,20 +1,25 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin\Watchers;
 
 use Casbin\Persist\Watcher;
-use Hyperf\Redis\Redis;
 use Closure;
+use Hyperf\Redis\Redis;
 use Psr\Container\ContainerInterface;
 
 /**
- * RedisWatcher
+ * RedisWatcher.
  */
 class RedisWatcher implements Watcher
 {
-
     /**
      * @var ContainerInterface
      */
@@ -26,7 +31,7 @@ class RedisWatcher implements Watcher
     private $pubRedis;
 
     /**
-     * channel
+     * channel.
      */
     private $channel;
 
@@ -45,12 +50,9 @@ class RedisWatcher implements Watcher
     /**
      * Sets the callback function that the watcher will call when the policy in DB has been changed by other instances.
      * A classic callback is loadPolicy() method of Enforcer class.
-     *
-     * @param Closure $func
      */
     public function setUpdateCallback(Closure $func): void
     {
-        
     }
 
     /**
@@ -70,5 +72,4 @@ class RedisWatcher implements Watcher
     {
         $this->pubRedis->close();
     }
-
 }

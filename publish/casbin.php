@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 return [
     /*
      * Casbin model setting.
@@ -16,7 +24,7 @@ return [
     'adapter' => [
         'class' => \Donjan\Casbin\Adapters\Mysql\DatabaseAdapter::class,
         'constructor' => [
-            'tableName' => 'casbin_rule'
+            'tableName' => 'casbin_rule',
         ],
     ],
     /*
@@ -26,10 +34,10 @@ return [
         'enabled' => false,
         'class' => \Donjan\Casbin\Watchers\RedisWatcher::class,
         'constructor' => [
-            'channel' => 'casbin'
+            'channel' => 'casbin',
         ],
     ],
     'log' => [
         'enabled' => false,
-    ]
+    ],
 ];

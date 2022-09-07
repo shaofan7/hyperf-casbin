@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin;
 
 use Casbin\Enforcer as BaseEnforcer;
-use Psr\Container\ContainerInterface;
 use Hyperf\Utils\ApplicationContext;
+use Psr\Container\ContainerInterface;
 
 /**
- * Enforcer
+ * Enforcer.
  * @method static bool enforce(...$rvals)
  * @method static array getRolesForUser(string $name, string ...$domain)
  * @method static array getUsersForRole(string $name, string ...$domain)
@@ -34,16 +42,11 @@ use Hyperf\Utils\ApplicationContext;
  */
 class Enforcer
 {
-
     /**
      * @var ContainerInterface
      */
     protected $container;
 
-    /**
-     *
-     * @param \Psr\Container\ContainerInterface $container
-     */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
@@ -55,9 +58,8 @@ class Enforcer
     }
 
     /**
-     *
      * @param string $method
-     * @param array  $parameters
+     * @param array $parameters
      *
      * @return mixed
      */
@@ -65,5 +67,4 @@ class Enforcer
     {
         return ApplicationContext::getContainer()->get(BaseEnforcer::class)->{$method}(...$parameters);
     }
-
 }

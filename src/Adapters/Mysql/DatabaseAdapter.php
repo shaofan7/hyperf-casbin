@@ -1,43 +1,64 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin\Adapters\Mysql;
 
-use Psr\Container\ContainerInterface;
-use Hyperf\Database\Schema\Schema;
-use Hyperf\Database\Schema\Blueprint;
-use Donjan\Casbin\Adapters\Mysql\Rule;
-use Hyperf\DbConnection\Db;
-use Psr\EventDispatcher\EventDispatcherInterface;
-use Casbin\Persist\Adapter;
-use Casbin\Persist\BatchAdapter;
-use Casbin\Persist\UpdatableAdapter;
-use Casbin\Persist\FilteredAdapter;
-use Casbin\Model\Model;
-use Casbin\Persist\AdapterHelper;
 use Casbin\Exceptions\InvalidFilterTypeException;
+use Casbin\Model\Model;
+use Casbin\Persist\Adapter;
+use Casbin\Persist\AdapterHelper;
+use Casbin\Persist\BatchAdapter;
+use Casbin\Persist\FilteredAdapter;
+use Casbin\Persist\UpdatableAdapter;
 use Donjan\Casbin\Event\PolicyChanged;
+use Hyperf\Database\Schema\Blueprint;
+use Hyperf\Database\Schema\Schema;
+use Hyperf\DbConnection\Db;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * DatabaseAdapter.
  */
 class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, FilteredAdapter
 {
-
     use AdapterHelper;
-
-    /**
-     * @var bool
-     */
-    private $filtered = false;
 
     /**
      * Rules eloquent model.
      *
      * @var Rule
      */
-    protected $eloquent;
+    protected mixed $eloquent;
+
+    /**
+     * Db.
+     * @var Db
+     */
+    protected mixed $db;
+
+    /**
+     * Db.
+     * @var EventDispatcherInterface
+     */
+    protected mixed $eventDispatcher;
+
+    /**
+     * tableName.
+     * @var tableName
+     */
+    protected mixed $tableName;
+
+    private bool $filtered = false;
 
     /**
      * @var ContainerInterface
@@ -45,27 +66,11 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     private $container;
 
     /**
-     * Db
-     * @var Db 
-     */
-    protected $db;
-
-    /**
-     * Db
-     * @var EventDispatcherInterface 
-     */
-    protected $eventDispatcher;
-
-    /**
-     * tableName
-     * @var tableName 
-     */
-    protected $tableName;
-
-    /**
      * the DatabaseAdapter constructor.
      *
-     * @param Rule $eloquent
+     * @param mixed $tableName
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function __construct(ContainerInterface $container, $tableName)
     {
@@ -79,7 +84,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     public function initTable()
     {
-        if (!Schema::hasTable($this->tableName)) {
+        if (! Schema::hasTable($this->tableName)) {
             Schema::create($this->tableName, function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('ptype')->nullable();
@@ -95,9 +100,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * savePolicyLine function.
-     *
-     * @param string $ptype
-     * @param array  $rule
      */
     public function savePolicyLine(string $ptype, array $rule)
     {
@@ -110,8 +112,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * loads all policy rules from the storage.
-     *
-     * @param Model $model
      */
     public function loadPolicy(Model $model): void
     {
@@ -119,16 +119,14 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
         foreach ($rows as $row) {
             $line = implode(', ', array_filter($row, function ($val) {
-                        return '' != $val && !is_null($val);
-                    }));
+                return $val != '' && ! is_null($val);
+            }));
             $this->loadPolicyLine(trim($line), $model);
         }
     }
 
     /**
      * saves all policy rules to the storage.
-     *
-     * @param Model $model
      */
     public function savePolicy(Model $model): void
     {
@@ -151,10 +149,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     /**
      * adds a policy rule to the storage.
      * This is part of the Auto-Save feature.
-     *
-     * @param string $sec
-     * @param string $ptype
-     * @param array  $rule
      */
     public function addPolicy(string $sec, string $ptype, array $rule): void
     {
@@ -167,8 +161,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      * Adds a policy rules to the storage.
      * This is part of the Auto-Save feature.
      *
-     * @param string $sec
-     * @param string $ptype
      * @param string[][] $rules
      */
     public function addPolicies(string $sec, string $ptype, array $rules): void
@@ -183,10 +175,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * This is part of the Auto-Save feature.
-     *
-     * @param string $sec
-     * @param string $ptype
-     * @param array  $rule
      */
     public function removePolicy(string $sec, string $ptype, array $rule): void
     {
@@ -202,8 +190,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      * Removes policy rules from the storage.
      * This is part of the Auto-Save feature.
      *
-     * @param string $sec
-     * @param string $ptype
      * @param string[][] $rules
      */
     public function removePolicies(string $sec, string $ptype, array $rules): void
@@ -224,18 +210,13 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     /**
      * RemoveFilteredPolicy removes policy rules that match the filter from the storage.
      * This is part of the Auto-Save feature.
-     *
-     * @param string $sec
-     * @param string $ptype
-     * @param int    $fieldIndex
-     * @param string ...$fieldValues
      */
     public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
     {
         $query = $this->eloquent->where('ptype', $ptype);
         foreach (range(0, 5) as $value) {
             if ($fieldIndex <= $value && $value < $fieldIndex + count($fieldValues)) {
-                if ('' != $fieldValues[$value - $fieldIndex]) {
+                if ($fieldValues[$value - $fieldIndex] != '') {
                     $query->where('v' . strval($value), $fieldValues[$value - $fieldIndex]);
                 }
             }
@@ -248,8 +229,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
      * Updates a policy rule from storage.
      * This is part of the Auto-Save feature.
      *
-     * @param string $sec
-     * @param string $ptype
      * @param string[] $oldRule
      * @param string[] $newPolicy
      */
@@ -270,11 +249,8 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     /**
      * UpdatePolicies updates some policy rules to storage, like db, redis.
      *
-     * @param string $sec
-     * @param string $ptype
      * @param string[][] $oldRules
      * @param string[][] $newRules
-     * @return void
      */
     public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): void
     {
@@ -293,13 +269,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * UpdateFilteredPolicies deletes old rules and adds new rules.
-     *
-     * @param string $sec
-     * @param string $ptype
-     * @param array $newPolicies
-     * @param integer $fieldIndex
-     * @param string ...$fieldValues
-     * @return array
      */
     public function updateFilteredPolicies(string $sec, string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): array
     {
@@ -313,7 +282,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
             }
         }
         $wheres = collect($query->getQuery()->wheres);
-        $wheres->shift(); //remove ptype
+        $wheres->shift(); // remove ptype
         $oldRules = [];
         $oldRules[] = $wheres->pluck('value')->all();
         $this->db->beginTransaction();
@@ -332,7 +301,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
     /**
      * Loads only policy rules that match the filter.
      *
-     * @param Model $model
      * @param mixed $filter
      */
     public function loadFilteredPolicy(Model $model, $filter): void
@@ -341,23 +309,23 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
         if (is_string($filter)) {
             $query->whereRaw($filter);
-        } else if ($filter instanceof Filter) {
+        } elseif ($filter instanceof Filter) {
             foreach ($filter->p as $k => $v) {
                 $query->where($v, $filter->g[$k]);
             }
-        } else if ($filter instanceof \Closure) {
+        } elseif ($filter instanceof \Closure) {
             $query->where($filter);
         } else {
             throw new InvalidFilterTypeException('invalid filter type');
         }
         $rows = $query->get()->makeHidden(['id'])->toArray();
         foreach ($rows as $row) {
-            $row = array_filter($row, function($value) {
-                return !is_null($value) && $value !== '';
+            $row = array_filter($row, function ($value) {
+                return ! is_null($value) && $value !== '';
             });
             $line = implode(', ', array_filter($row, function ($val) {
-                        return '' != $val && !is_null($val);
-                    }));
+                return $val != '' && ! is_null($val);
+            }));
             $this->loadPolicyLine(trim($line), $model);
         }
         $this->setFiltered(true);
@@ -365,8 +333,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * Returns true if the loaded policy has been filtered.
-     *
-     * @return bool
      */
     public function isFiltered(): bool
     {
@@ -375,12 +341,9 @@ class DatabaseAdapter implements Adapter, BatchAdapter, UpdatableAdapter, Filter
 
     /**
      * Sets filtered parameter.
-     *
-     * @param bool $filtered
      */
     public function setFiltered(bool $filtered): void
     {
         $this->filtered = $filtered;
     }
-
 }

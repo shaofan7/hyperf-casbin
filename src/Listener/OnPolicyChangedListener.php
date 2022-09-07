@@ -1,22 +1,26 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin\Listener;
 
-use Psr\Container\ContainerInterface;
-use Hyperf\Event\Contract\ListenerInterface;
-use Donjan\Casbin\Event\PolicyChanged;
 use Donjan\Casbin\Event\PipeMessage;
-use Swoole\Server;
+use Donjan\Casbin\Event\PolicyChanged;
+use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Process\ProcessCollector;
 use Hyperf\Server\ServerManager;
+use Psr\Container\ContainerInterface;
+use Swoole\Server;
 
 class OnPolicyChangedListener implements ListenerInterface
 {
-
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
+    private ContainerInterface $container;
 
     public function __construct(ContainerInterface $container)
     {
@@ -30,9 +34,9 @@ class OnPolicyChangedListener implements ListenerInterface
         ];
     }
 
-    public function process(object $event)
+    public function process(object $event): void
     {
-        if (config('casbin.watcher.enabled')) { //启用watcher，不响应此事件
+        if (config('casbin.watcher.enabled')) { // 启用watcher，不响应此事件
             return;
         }
         $serverManager = $this->container->get(ServerManager::class);
@@ -46,7 +50,7 @@ class OnPolicyChangedListener implements ListenerInterface
                     }
                 }
             }
-            if (class_exists(ProcessCollector::class) && !ProcessCollector::isEmpty()) {
+            if (class_exists(ProcessCollector::class) && ! ProcessCollector::isEmpty()) {
                 $processes = ProcessCollector::all();
                 if ($processes) {
                     $string = serialize(new PipeMessage(PipeMessage::LOAD_POLICY));
@@ -57,5 +61,4 @@ class OnPolicyChangedListener implements ListenerInterface
             }
         }
     }
-
 }

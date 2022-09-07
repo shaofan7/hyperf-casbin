@@ -1,7 +1,13 @@
 <?php
 
-declare(strict_types = 1);
-
+declare(strict_types=1);
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 error_reporting(E_ALL);
 date_default_timezone_set('Asia/Shanghai');
 
@@ -11,8 +17,8 @@ use Hyperf\Di\Container;
 use Hyperf\Di\Definition\DefinitionSourceFactory;
 use Hyperf\Utils\ApplicationContext;
 
-!defined('BASE_PATH') && define('BASE_PATH', dirname(__DIR__, 1));
-!defined('SWOOLE_HOOK_FLAGS') && define('SWOOLE_HOOK_FLAGS', SWOOLE_HOOK_ALL);
+! defined('BASE_PATH') && define('BASE_PATH', dirname(__DIR__, 1));
+! defined('SWOOLE_HOOK_FLAGS') && define('SWOOLE_HOOK_FLAGS', SWOOLE_HOOK_ALL);
 
 Swoole\Runtime::enableCoroutine(true);
 

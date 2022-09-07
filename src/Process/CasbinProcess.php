@@ -1,23 +1,25 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin\Process;
 
+use Donjan\Casbin\Event\PipeMessage;
 use Hyperf\Process\AbstractProcess;
 use Hyperf\Redis\Redis;
-use Donjan\Casbin\Event\PipeMessage;
 use Swoole\Server;
 
 class CasbinProcess extends AbstractProcess
 {
+    public string $name = 'casbin-watcher';
 
-    public $name = 'casbin-watcher';
-
-    /**
-     * @var Server
-     */
-    protected $server;
+    protected Server $server;
 
     public function handle(): void
     {
@@ -43,5 +45,4 @@ class CasbinProcess extends AbstractProcess
     {
         return config('casbin.watcher.enabled') == true;
     }
-
 }

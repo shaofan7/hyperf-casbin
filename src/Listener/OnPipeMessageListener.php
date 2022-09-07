@@ -1,17 +1,24 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of 绿鸟科技.
+ *
+ * @link     https://www.greenbirds.cn
+ * @document https://greenbirds.cn
+ * @contact  liushaofan@greenbirds.cn
+ */
 namespace Donjan\Casbin\Listener;
 
-use Psr\Container\ContainerInterface;
+use Casbin\Enforcer;
+use Donjan\Casbin\Event\PipeMessage;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\OnPipeMessage;
 use Hyperf\Process\Event\PipeMessage as UserProcessPipeMessage;
-use Donjan\Casbin\Event\PipeMessage;
-use Casbin\Enforcer;
+use Psr\Container\ContainerInterface;
 
 class OnPipeMessageListener implements ListenerInterface
 {
-
     /**
      * @var ContainerInterface
      */
@@ -37,7 +44,7 @@ class OnPipeMessageListener implements ListenerInterface
      * Handle the Event when the event is triggered, all listeners will
      * complete before the event is returned to the EventDispatcher.
      */
-    public function process(object $event)
+    public function process(object $event): void
     {
         if (($event instanceof OnPipeMessage || $event instanceof UserProcessPipeMessage) && $event->data instanceof PipeMessage) {
             $message = $event->data;
@@ -48,5 +55,4 @@ class OnPipeMessageListener implements ListenerInterface
             }
         }
     }
-
 }

@@ -17,6 +17,8 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
 
 ### 重大变更
 
++ 修改支持了 hyperf3.0
+
 + 3.21增加Redis Watcher 升级需要重新发布配置
 
 + 3.6 升级需要重新发布配置
@@ -24,13 +26,13 @@ Casbin只负责访问控制，在RBAC方案中也只是储存用户和角色之�
 ### 安装
 
  ```
-  composer require donjan-deng/hyperf-casbin
+  composer require gb-hyperf/casbin
  ```
 
 发布配置
 
 ```
- php bin/hyperf.php vendor:publish donjan-deng/hyperf-casbin
+ php bin/hyperf.php vendor:publish gb-hyperf/casbin
 ```
 
 配置文件config/autoload/casbin.php
